@@ -1,0 +1,414 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Smart Chat</title>
+    <!-- <link rel="stylesheet" type="text/css" href="index.css"> -->
+    <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="icon" href="http://icons.iconarchive.com/icons/graphicloads/100-flat-2/256/chat-2-icon.png">
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <!-- <script src="dropzone.js"></script> -->
+  </head>
+  <body>
+  <style type="text/css">
+    { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-size: 13px; font-family: "Helvetica Neue",Helvetica,Arial,sans-serif !important; }
+      form { background: #e0e0e0; padding: 3px; }
+      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #messages { list-style-type: none; margin: 0; padding: 0; float: left; }
+      #messages li { padding: 5px 10px; border-radius: 12px; width: 70%; margin-top: 22px; color: #fff; }
+      #messages li:nth-child(even) { background-color: #bebaba; color: #fff; }
+      #messages li:nth-child(odd) { background-color: dodgerblue; color: #fff; margin-left: 200px; }
+      .title{
+        text-align: center;
+        margin-top: 30px;
+      }
+      #messages li {
+        -webkit-transition: all 0.2s ease-in-out;
+        -moz-transition: all 0.2s ease-in-out;
+        transition: all 1.5s ease-in-out;
+      }
+      .title h1 {
+        font-family: 'Oswald', sans-serif;
+        font-weight: 100;
+        letter-spacing: 30px;
+      }
+      #id{
+        padding-top: 10%;
+      }
+      #join{
+        width: 100%;
+        -webkit-transition: all 0.2s ease-in-out;
+        -moz-transition: all 0.2s ease-in-out;
+        transition: all 0.2s ease-in-out;
+      }
+      #join:hover{
+        cursor: pointer;
+        background-color: dodgerblue;
+      }
+      #chat{
+        position: fixed; 
+        bottom: 0; 
+        width: 100%;
+        clear: both;
+      }
+      #chatbox{
+        clear: both;
+      }
+      #chatbox form{
+        background: #e0e0e0;
+        padding: 3px;
+        clear: both;
+      }
+      #chatBox button{
+        background-color: dodgerblue;
+        color: #fff;
+      }
+      .form-inline{ background: #eee;
+        width: 15%;
+        position: initial;
+        margin: auto;
+        margin-top: 12%;
+      }
+      .input-small{ width: 100%; text-align: center; padding-right: 0; padding-left: 0; }
+      .boxroom{
+        float: right;
+        visibility: hidden;
+        text-align: center;
+        clear: both;
+      }
+      .boxroom h2{
+        font-weight: 100;
+        border-bottom-style: solid;
+        border-bottom: thin solid #eee;
+        font-size: 12px;
+        letter-spacing: 2px;
+      }
+      .boxroom li {
+        list-style-type: none;
+        margin: 20px;
+        color: lightcoral;
+        -webkit-transition: all 0.2s ease-in-out;
+        -moz-transition: all 0.2s ease-in-out;
+        transition: all 0.2s ease-in-out;
+      }
+      .boxroom li:hover{
+        cursor: pointer;
+        /*transform: scale(1.5);*/
+      }
+      .boxroom ul{
+        padding-left: 0;
+      }
+      .error{
+        visibility: hidden;
+        -webkit-transition: all 0.2s ease-in-out;
+        -moz-transition: all 0.2s ease-in-out;
+        transition: all 0.2s ease-in-out;
+      }
+      .error.toggle{
+        visibility: visible;
+        /*position: absolute;*/
+        font-size: 10px;
+        color: red;
+        text-align: center;
+        padding: 6px;
+        /*right: 44%;*/
+      }
+      .error1{
+        visibility: hidden;
+        -webkit-transition: all 0.2s ease-in-out;
+        -moz-transition: all 0.2s ease-in-out;
+        transition: all 0.2s ease-in-out;
+      }
+      .error1.toggle{
+        visibility: visible;
+        /*position: absolute;*/
+        font-size: 10px;
+        color: red;
+        text-align: center;
+        padding: 6px;
+        /*right: 44%;*/
+      }
+      .privateChat{
+        background-color: #eee;
+        width: 50%;
+        color: red;
+        font-weight: bolder;
+        border-radius: 12px;
+        padding: 5px;
+      }
+      .privateChat li{
+        list-style-type: none;
+      }
+      .infoName {
+        color: dodgerblue;
+      }
+      .left{
+        list-style-type: none;
+      text-align: center;
+      margin-top: 5%;
+      font-size: 30px;
+      font-weight: 100;
+      color: dodgerblue;
+      font-family: "Helvetica Neue",Helvetica,Arial,sans-serif !important;
+      }
+
+      #leave{
+        border: 0;
+      padding: 10px;
+      border-radius: 5px;
+        -webkit-transition: all 0.2s ease-in-out;
+        -moz-transition: all 0.2s ease-in-out;
+        transition: all 0.2s ease-in-out;
+      }
+      #leave:hover{
+        cursor: pointer;
+        background-color: dodgerblue;
+      }
+      #back_in{
+        position: absolute;
+      left: 48%;
+      margin-top: 4%;
+      border: 0;
+      padding: 10px;
+      border-radius: 5px;
+        -webkit-transition: all 0.2s ease-in-out;
+        -moz-transition: all 0.2s ease-in-out;
+        transition: all 0.2s ease-in-out;
+      }
+      #back_in:hover{
+        cursor: pointer;
+        background-color: dodgerblue;
+      }
+      .changeName{
+      margin-bottom: 1%;
+      margin-right: 30px;
+      padding: 10px;
+      border: 0 ;
+      border-radius: 5px;
+      -webkit-transition: all 0.2s ease-in-out;
+        -moz-transition: all 0.2s ease-in-out;
+        transition: all 0.2s ease-in-out;
+      }
+      .changeName:hover{
+        cursor: pointer;
+        background-color: dodgerblue;
+      }
+      .fa{
+        font-size: 25px;
+        -webkit-transition: all 0.2s ease-in-out;
+        -moz-transition: all 0.2s ease-in-out;
+        transition: all 0.2s ease-in-out;
+        margin: 8px;
+      }
+      .fa:hover{
+        cursor: pointer;
+        transform: scale(2.0);
+
+      }
+      .red{
+        color: #ff1717;
+      }
+      .green{
+        color: #26f726;
+      }
+  </style>
+    <div class="title">
+        <h1>WELCOME TO SMART CHAT</h1>
+        <span class="userinfo"></span>
+        <i class="fa fa-check-circle green" aria-hidden="true"></i>
+        <i class="fa fa-times-circle red" aria-hidden="true"></i>
+    </div>
+    <!-- <form action="/file-upload"
+      class="dropzone"
+      id="my-awesome-dropzone"></form> -->
+   <div class="span5 offset2" id="login">
+        <form class="form-inline">
+              <input type="text" class="input-small" autocomplete="off" placeholder="Your name" id="name">
+            <input type="button" name="join" class="trouble" id="join" value="Join" class="btn btn-primary">
+        </form>
+        <div class="error">
+          <span>Enter a User Name</span>
+        </div>
+        <div class="error1">
+          <span>No spaces</span>
+        </div>
+    </div>
+    <div class="casing">
+    <div class="privateChat">
+      <h3 class="privateTitle">Private Messages (Only You and other user can see these!)</h3>
+      <ul class="privateList"></ul>
+    </div>
+   </div>
+  <div class="boxroom">
+    <input type="button" name="change" class="changeName btn btn-primary" value="Change User Name">   
+      <input type="button" name="leave" id="leave" value="Leave">
+      <h2>Users Online</h2>
+      <ul id="people" class="unstyled"></ul>
+  </div>
+  <ul id="messages"></ul>
+  <div id="chat">
+    <form id="chatBox" action="">
+      <input id="m" autocomplete="off" /><button>Send</button>
+    </form>
+  </div>
+  </body>
+  <script>
+  $(".casing").hide();
+   $(document).ready(function() {
+       $(".form-inline input").bind("keypress", function(e) {
+          if (e.keyCode == 13) {  //If the client hits the enter key 
+             console.log("clicked me!!!");
+             $(".form-inline input").trigger("click"); //Run the function that would run  
+              return false; //Run the function only once
+          }
+       });
+    });
+    var typing = false;
+    var timeout = undefined;
+    var socket = io();    //Create a new socket object
+    $("#chat").hide();    //Hide the chat room elements
+    $('.fa').hide();
+    $('#messages').hide();  //Hide the message box
+    $('.input-small').focus();  //Automatically be in the input box for the username
+    $("#join").click(function(){  //If the join button is clicked
+            var name = $("#name").val();  //Get the username from the input box
+            var checker = true;
+            if (name === "") {  //If the user clicked join without entering a username 
+                $('.error').addClass('toggle'); //Display error message
+                ready = false;
+            }
+            else if (name.indexOf(' ') >= 0){ //If the username has spaces in it
+              $('.error1').addClass('toggle');  //Display error message
+                ready = false;
+            }
+            else{   //If username is valid
+              if(socket.emit('checkIfUserExist', name)){
+                $("#login").detach(); //Remove the login form
+                  $("#chat").show(); //Bring up the chat room
+                  $('.fa').show();
+                  $('#messages').show();  //Bring up the message boxes
+                  $('.boxroom').css('visibility', 'visible'); //Display the list of online users
+                  socket.emit("join", name);  //Call the function on the server side to save the username that just joined and notify people in chat room
+                  socket.emit("give username");// Call the function on the server side to save the user info 
+                  $("#m").focus();//Once the chat room is open, focus onto the message box
+                  ready = true;
+              }
+            }
+        });
+    $("#leave").click(function(){ //If the logout button is pressed
+      socket.emit("leave"); //Call the leave function on the server side (which just calls the disconnect function...Not sure why it doesn't work the obvious way..hmmm)
+        $('body').hide(); //Hide the entire page, since the user is leaving
+      $('html').append($('<li class="left">').text('You have left the chat room!!')); //Display a "you have left message"
+$('html').append($('<input type="button" id="back_in" value = "Log back in" onclick="reloadPage()">')); //button to return to login
+});
+  function reloadPage(){  //Reload page function, called if user wants to log back into chat room
+    location.reload();
+  }
+  $('#chatBox').submit(function(){ //When the user sends a message run this function
+    socket.emit('chat message', $('#m').val()); //call the function to display a message on the message board 
+    $('#m').val('');  //After sending the message clear the users text box
+    return false; //Run only once if enter pressed
+  });
+  $('.changeName').click(function(){ //If the user wants to change their user name
+    var newName = prompt("Enter New User Name!!");  //Prompt them to enter their new User name
+      if(newName === ""){   //If they don't enter anything 
+        alert("Enter a User Name!!"); //Send an alert if they don't enter anything
+      }
+      else if(newName.indexOf(' ') >= 0){ //If they new username has any spaces
+        alert("No Spaces in name");   //Sned an alert message if there are any spaces in the new user name
+      }
+      else{
+        socket.emit("changeUserName", newName); //If everything is fine, then call the function to change the username
+      }
+  });
+  socket.on("update", function(name) {  //Function to update to all the people in the chat when someone new joins the chat room
+            if(ready)
+                $("#messages").append($('<li>').text(name));  //Show the new user on the message section
+  }); 
+  socket.on("update-people", function(people){  //Function to update the list of online users
+            if(ready) { 
+                $("#people").empty(); //Clear the current list
+                $.each(people, function(socketid, name) { //Loop though the current users
+          $('#people').append($('<li class="private">').text(name));  //Display the names on the list
+        });
+      }
+  });
+    socket.on('chat message', function(msg, ifMe){  //Function to display messages in the message section
+      var mess = $('<li>').text(msg); //Store the message in the variable mess
+      // if(ifMe){
+      //   $('#messages li').css("background-color", "dodgerblue");
+      //   $('#messages li').css("margin-left", "200px;");
+      // }
+      // else{
+      //   $('#messages li').css("background-color", "#bebaba");
+      //   // $('#messages li').css("margin-left", "200px;"); 
+      // }
+      $('#messages').append(mess);  //Display the message in the message section
+    });
+    socket.on('whisper', function(msg){ //Function to be called when a user wants to private message
+      $(".casing").show();  //Show the private message box
+      var mess = $('<li>').text(msg); //Store the private message in a variable called mess
+      $('.privateList').append(mess); //Display the message in the private section
+    });
+    socket.on('info', function(name){ //Function to display the users username to themseleves
+      $('.userinfo').empty(); //Clear the username box
+        $(".userinfo").append($('<h4 class="infoName">').text("Hello " + name)); //Display the username
+    });
+
+    var boolean = true;   //Temp variable (Initial status is available)
+    $('.green').click(function(){ //If the green check mark is pressed
+      if(!boolean){   //If the bool value is false
+        boolean = true;   //Set it to true
+        socket.emit('goto server', boolean); //Call the function to set your status, in this case the status is set to "available".
+      }
+    });
+    $('.red').click(function(){ //If the red cancel mark is clicked
+      if(boolean){  //If the bool value is false
+        boolean = false;  //Change the value to false
+        socket.emit('goto server', boolean);//Call the funtion to set you status, in this case that status is set to "away"
+      }
+    });
+
+  function timeoutFunction() {
+    typing = false;
+    socket.emit("typing", false);
+  }
+
+  function playSound(){   //Function to play a message sound when a user recives or sends a message (Doesn't work yet)
+    var audio = {};
+        audio["walk"] = new Audio();
+        audio["walk"].src = "sound.mp3"
+        audio["walk"].addEventListener('load', function () {
+            audio["walk"].play();
+          });
+  }
+
+  $("#m").keypress(function(e){
+    if (e.which !== 13) {
+      if (typing === false && $("#m").is(":focus")) {
+        typing = true;
+        socket.emit("typing", true);
+      } else {
+        clearTimeout(timeout);
+        timeout = setTimeout(timeoutFunction, 500);
+      }
+    }
+  });
+  socket.on("isTyping", function(data) {
+    if (data.isTyping) {
+      if ($("#"+data.person+"").length === 0) {
+        $("#messages").append("<li id='"+ data.person +"'><span class='text-muted'><small><i class='fa fa-keyboard-o'></i> " + data.person + " is typing.</small></li>");
+        timeout = setTimeout(timeoutFunction, 500);
+      }
+    } else {
+      $("#"+data.person+"").remove();
+    }
+  });
+socket.on("private message", function(msg){ //Function that sends an error message to the user if there is an error
+  alert(msg);
+});
+
+    </script>
+</html>
